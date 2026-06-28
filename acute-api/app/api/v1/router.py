@@ -7,6 +7,7 @@ from app.api.v1.endpoints.educations import router as educations_router
 from app.api.v1.endpoints.health import router as health_router
 from app.api.v1.endpoints.hospitals import router as hospitals_router
 from app.api.v1.endpoints.otp import router as otp_router
+from app.api.v1.endpoints.specialities import router as specialities_router
 
 api_v1_router = APIRouter()
 
@@ -18,4 +19,7 @@ api_v1_router.include_router(catalog_router, prefix="/catalog", tags=["catalog"]
 api_v1_router.include_router(hospitals_router, prefix="/hospitals", tags=["hospitals"])
 api_v1_router.include_router(
     educations_router, prefix="/doctors/me/educations", tags=["educations"]
+)
+api_v1_router.include_router(
+    specialities_router, prefix="/doctors/me/specialities", tags=["specialities"]
 )
