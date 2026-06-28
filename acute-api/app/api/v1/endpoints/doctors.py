@@ -14,7 +14,12 @@ def _serialize(doctor: Doctor) -> DoctorMeResponse:
     pct, sections = compute_completion(doctor)
     return DoctorMeResponse.model_validate(
         {
-            **doctor.__dict__,
+            "id": doctor.id,
+            "mobile": doctor.mobile,
+            "first_name": doctor.first_name,
+            "middle_name": doctor.middle_name,
+            "last_name": doctor.last_name,
+            "email": doctor.email,
             "educations": doctor.educations,
             "specialities": doctor.specialities,
             "experiences": doctor.experiences,
