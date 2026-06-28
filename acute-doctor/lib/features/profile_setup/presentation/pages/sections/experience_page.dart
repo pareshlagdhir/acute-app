@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:intl/intl.dart';
 
 import '../../../../../core/errors/failures.dart';
 import '../../../../../core/theme/tokens/tokens.dart';
@@ -206,7 +205,11 @@ class _ExperienceForm extends ConsumerStatefulWidget {
 
 class _ExperienceFormState extends ConsumerState<_ExperienceForm> {
   final _designationController = TextEditingController();
-  final _dateFormat = DateFormat('yyyy-MM-dd');
+
+  String _formatDate(DateTime d) =>
+      '${d.year.toString().padLeft(4, '0')}-'
+      '${d.month.toString().padLeft(2, '0')}-'
+      '${d.day.toString().padLeft(2, '0')}';
 
   Hospital? _selectedHospital;
   String? _startDate;
@@ -249,7 +252,7 @@ class _ExperienceFormState extends ConsumerState<_ExperienceForm> {
       lastDate: now,
     );
     if (picked == null) return;
-    final formatted = _dateFormat.format(picked);
+    final formatted = _formatDate(picked);
     setState(() {
       if (isStart) {
         _startDate = formatted;
