@@ -40,9 +40,13 @@ class CatalogPicker extends StatefulWidget {
 
 class _CatalogPickerState extends State<CatalogPicker> {
   final _controller = TextEditingController();
+  final _focusNode = FocusNode();
   List<CatalogItem> _suggestions = [];
   bool _loading = false;
   bool _showSuggestions = false;
+  // Tracks whether the last value emitted came from a catalog item tap so that
+  // the focus-loss listener does not double-emit the same value.
+  bool _selectedFromCatalog = false;
 
   @override
   void initState() {
@@ -50,12 +54,26 @@ class _CatalogPickerState extends State<CatalogPicker> {
     if (widget.initialValue != null) {
       _controller.text = widget.initialValue!;
     }
+    _focusNode.addListener(_onFocusChange);
   }
 
   @override
   void dispose() {
+    _focusNode
+      ..removeListener(_onFocusChange)
+      ..dispose();
     _controller.dispose();
     super.dispose();
+  }
+
+  void _onFocusChange() {
+    if (!_focusNode.hasFocus && !_selectedFromCatalog) {
+      _submitCustom();
+    }
+    // Reset the guard after each focus cycle.
+    if (!_focusNode.hasFocus) {
+      _selectedFromCatalog = false;
+    }
   }
 
   Future<void> _onChanged(String query) async {
@@ -78,6 +96,7 @@ class _CatalogPickerState extends State<CatalogPicker> {
 
   void _selectItem(CatalogItem item) {
     _controller.text = item.name;
+    _selectedFromCatalog = true;
     setState(() {
       _suggestions = [];
       _showSuggestions = false;
@@ -104,6 +123,7 @@ class _CatalogPickerState extends State<CatalogPicker> {
       children: [
         TextField(
           controller: _controller,
+          focusNode: _focusNode,
           decoration: InputDecoration(
             labelText: widget.label,
             suffixIcon: _loading
@@ -118,7 +138,10 @@ class _CatalogPickerState extends State<CatalogPicker> {
                 : null,
           ),
           onChanged: _onChanged,
-          onSubmitted: (_) => _submitCustom(),
+          onSubmitted: (_) {
+            _selectedFromCatalog = false;
+            _submitCustom();
+          },
           textInputAction: TextInputAction.done,
         ),
         if (_showSuggestions)

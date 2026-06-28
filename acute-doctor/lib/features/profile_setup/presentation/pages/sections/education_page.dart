@@ -89,18 +89,23 @@ class _EducationBody extends ConsumerWidget {
   }
 }
 
-class _EducationCard extends ConsumerWidget {
+class _EducationCard extends ConsumerStatefulWidget {
   const _EducationCard({required this.education});
 
   final Education education;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<_EducationCard> createState() => _EducationCardState();
+}
+
+class _EducationCardState extends ConsumerState<_EducationCard> {
+  @override
+  Widget build(BuildContext context) {
     return Card(
       margin: EdgeInsets.zero,
       child: ListTile(
-        title: Text(education.degree),
-        subtitle: Text('Reg. no: ${education.registrationNumber}'),
+        title: Text(widget.education.degree),
+        subtitle: Text('Reg. no: ${widget.education.registrationNumber}'),
         trailing: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -113,7 +118,7 @@ class _EducationCard extends ConsumerWidget {
               icon: const Icon(Icons.delete_outline),
               tooltip: 'Delete',
               color: Theme.of(context).colorScheme.error,
-              onPressed: () => _confirmDelete(context, ref),
+              onPressed: () => _confirmDelete(context),
             ),
           ],
         ),
@@ -130,12 +135,12 @@ class _EducationCard extends ConsumerWidget {
       ),
       builder: (ctx) => UncontrolledProviderScope(
         container: ProviderScope.containerOf(context),
-        child: _EducationForm(education: education),
+        child: _EducationForm(education: widget.education),
       ),
     );
   }
 
-  Future<void> _confirmDelete(BuildContext context, WidgetRef ref) async {
+  Future<void> _confirmDelete(BuildContext context) async {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -156,7 +161,9 @@ class _EducationCard extends ConsumerWidget {
       ),
     );
     if (confirmed != true) return;
-    await ref.read(doctorRepositoryProvider).deleteEducation(education.id);
+    if (!mounted) return;
+    await ref.read(doctorRepositoryProvider).deleteEducation(widget.education.id);
+    if (!mounted) return;
     await ref.read(profileControllerProvider.notifier).refresh();
   }
 }
@@ -240,8 +247,17 @@ class _EducationFormState extends ConsumerState<_EducationForm> {
           _error = f.message;
         }),
         (_) async {
-          await ref.read(profileControllerProvider.notifier).refresh();
-          if (mounted) Navigator.of(context).pop();
+          try {
+            await ref.read(profileControllerProvider.notifier).refresh();
+            if (mounted) Navigator.of(context).pop();
+          } on Exception catch (e) {
+            if (mounted) {
+              setState(() {
+                _saving = false;
+                _error = 'Failed to refresh: $e';
+              });
+            }
+          }
         },
       );
     } else {
@@ -258,8 +274,17 @@ class _EducationFormState extends ConsumerState<_EducationForm> {
           _error = f.message;
         }),
         (_) async {
-          await ref.read(profileControllerProvider.notifier).refresh();
-          if (mounted) Navigator.of(context).pop();
+          try {
+            await ref.read(profileControllerProvider.notifier).refresh();
+            if (mounted) Navigator.of(context).pop();
+          } on Exception catch (e) {
+            if (mounted) {
+              setState(() {
+                _saving = false;
+                _error = 'Failed to refresh: $e';
+              });
+            }
+          }
         },
       );
     }
