@@ -10,6 +10,7 @@ import '../../features/profile/presentation/pages/profile_page.dart';
 import '../../features/profile_setup/presentation/pages/onboarding_hub_page.dart';
 import '../../features/profile_setup/presentation/pages/sections/education_page.dart';
 import '../../features/profile_setup/presentation/pages/sections/personal_info_page.dart';
+import '../../features/profile_setup/presentation/pages/sections/speciality_page.dart';
 import '../../features/splash/presentation/pages/splash_page.dart';
 import '../network/dio_provider.dart';
 import 'app_routes.dart';
@@ -51,10 +52,7 @@ final goRouterProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
         path: AppRoutes.onboardingSpeciality,
-        // TODO(F7-F11): replace placeholder with real SpecialityPage
-        builder: (_, __) => const Scaffold(
-          body: Center(child: Text('Speciality (coming soon)')),
-        ),
+        builder: (_, __) => const SpecialityPage(),
       ),
       GoRoute(
         path: AppRoutes.onboardingExperience,
