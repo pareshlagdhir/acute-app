@@ -21,14 +21,15 @@ async def db_session() -> AsyncGenerator[AsyncSession, None]:
         await conn.run_sync(Base.metadata.create_all)
     maker = async_sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
     async with maker() as session:
-        app.dependency_overrides[get_db] = lambda: _yield(session)
+
+        async def _override_get_db():
+            yield session
+
+        app.dependency_overrides[get_db] = _override_get_db
         yield session
         app.dependency_overrides.pop(get_db, None)
     await engine.dispose()
 
-
-async def _yield(session: AsyncSession):
-    yield session
 
 
 @pytest.fixture
