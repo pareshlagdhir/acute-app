@@ -27,26 +27,29 @@ def upgrade() -> None:
     op.create_table(
         "doctors",
         sa.Column("id", sa.Uuid(), primary_key=True),
-        sa.Column("mobile", sa.String(20), nullable=False, unique=True),
+        sa.Column("mobile", sa.String(20), nullable=False),
         sa.Column("first_name", sa.String(100)),
         sa.Column("middle_name", sa.String(100)),
         sa.Column("last_name", sa.String(100)),
         sa.Column("email", sa.String(255)),
-        sa.Column("created_at", sa.DateTime(timezone=True), server_default=sa.func.now()),
-        sa.Column("updated_at", sa.DateTime(timezone=True), server_default=sa.func.now()),
+        sa.Column("created_at", sa.DateTime(timezone=True), nullable=False, server_default=sa.func.now()),
+        sa.Column("updated_at", sa.DateTime(timezone=True), nullable=False, server_default=sa.func.now()),
     )
-    op.create_index("ix_doctors_mobile", "doctors", ["mobile"])
+    op.create_index("ix_doctors_mobile", "doctors", ["mobile"], unique=True)
 
     op.create_table(
         "degree_catalog",
         sa.Column("id", sa.Uuid(), primary_key=True),
-        sa.Column("name", sa.String(100), nullable=False, unique=True),
+        sa.Column("name", sa.String(100), nullable=False),
     )
+    op.create_index("ix_degree_catalog_name", "degree_catalog", ["name"], unique=True)
+
     op.create_table(
         "speciality_catalog",
         sa.Column("id", sa.Uuid(), primary_key=True),
-        sa.Column("name", sa.String(100), nullable=False, unique=True),
+        sa.Column("name", sa.String(100), nullable=False),
     )
+    op.create_index("ix_speciality_catalog_name", "speciality_catalog", ["name"], unique=True)
     op.create_table(
         "hospitals",
         sa.Column("id", sa.Uuid(), primary_key=True),
@@ -67,12 +70,16 @@ def upgrade() -> None:
         sa.Column("institution", sa.String(255)),
         sa.Column("year_of_completion", sa.Integer()),
     )
+    op.create_index("ix_doctor_educations_doctor_id", "doctor_educations", ["doctor_id"])
+
     op.create_table(
         "doctor_specialities",
         sa.Column("id", sa.Uuid(), primary_key=True),
         sa.Column("doctor_id", sa.Uuid(), sa.ForeignKey("doctors.id", ondelete="CASCADE"), nullable=False),
         sa.Column("name", sa.String(100), nullable=False),
     )
+    op.create_index("ix_doctor_specialities_doctor_id", "doctor_specialities", ["doctor_id"])
+
     op.create_table(
         "doctor_experiences",
         sa.Column("id", sa.Uuid(), primary_key=True),
@@ -83,6 +90,9 @@ def upgrade() -> None:
         sa.Column("end_date", sa.Date()),
         sa.Column("is_current", sa.Boolean(), nullable=False, server_default=sa.false()),
     )
+    op.create_index("ix_doctor_experiences_doctor_id", "doctor_experiences", ["doctor_id"])
+    op.create_index("ix_doctor_experiences_hospital_id", "doctor_experiences", ["hospital_id"])
+
     op.create_table(
         "working_hours",
         sa.Column("id", sa.Uuid(), primary_key=True),
@@ -91,6 +101,7 @@ def upgrade() -> None:
         sa.Column("start_time", sa.Time(), nullable=False),
         sa.Column("end_time", sa.Time(), nullable=False),
     )
+    op.create_index("ix_working_hours_experience_id", "working_hours", ["experience_id"])
 
     degrees = sa.table("degree_catalog", sa.column("id", sa.Uuid()), sa.column("name", sa.String))
     specialities = sa.table("speciality_catalog", sa.column("id", sa.Uuid()), sa.column("name", sa.String))

@@ -66,6 +66,30 @@ async def test_day_of_week_out_of_range(client: AsyncClient, make_doctor, auth_h
     assert resp.status_code == 422
 
 
+async def test_delete_experience_cascades_working_hours(client: AsyncClient, make_doctor, auth_headers) -> None:
+    doctor = await make_doctor()
+    h = auth_headers(doctor)
+    exp_id = await _experience(client, h)
+
+    # Create a working-hour under the experience
+    created = await client.post(
+        f"/api/v1/doctors/me/experiences/{exp_id}/working-hours",
+        json={"day_of_week": 1, "start_time": "08:00:00", "end_time": "14:00:00"},
+        headers=h,
+    )
+    assert created.status_code == 201
+
+    # Delete the parent experience
+    deleted = await client.delete(f"/api/v1/doctors/me/experiences/{exp_id}", headers=h)
+    assert deleted.status_code == 204
+
+    # Working-hours endpoint for the deleted experience must return 404
+    listed = await client.get(
+        f"/api/v1/doctors/me/experiences/{exp_id}/working-hours", headers=h
+    )
+    assert listed.status_code == 404
+
+
 async def test_cross_doctor_working_hours_404(client: AsyncClient, make_doctor, auth_headers) -> None:
     # Create doctor A and their experience + working-hour
     doctor_a = await make_doctor(mobile="911111111111")
