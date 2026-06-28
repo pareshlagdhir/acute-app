@@ -8,6 +8,7 @@ import '../../features/auth/presentation/pages/otp_page.dart';
 import '../../features/home/presentation/pages/home_page.dart';
 import '../../features/profile/presentation/pages/profile_page.dart';
 import '../../features/profile_setup/presentation/pages/onboarding_hub_page.dart';
+import '../../features/profile_setup/presentation/pages/sections/education_page.dart';
 import '../../features/profile_setup/presentation/pages/sections/personal_info_page.dart';
 import '../../features/splash/presentation/pages/splash_page.dart';
 import '../network/dio_provider.dart';
@@ -46,10 +47,7 @@ final goRouterProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
         path: AppRoutes.onboardingEducation,
-        // TODO(F7-F11): replace placeholder with real EducationPage
-        builder: (_, __) => const Scaffold(
-          body: Center(child: Text('Education (coming soon)')),
-        ),
+        builder: (_, __) => const EducationPage(),
       ),
       GoRoute(
         path: AppRoutes.onboardingSpeciality,
