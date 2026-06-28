@@ -1,25 +1,22 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 import '../../../../core/config/app_config.dart';
 import '../../../../core/errors/failures.dart';
+import '../../../../core/network/dio_provider.dart';
 import '../../../../core/storage/secure_storage.dart';
 import '../../data/msg91_otp_service.dart';
 import '../../data/otp_repository_impl.dart';
 import '../../domain/otp_repository.dart';
+import '../../../onboarding/domain/doctor_repository.dart';
+import '../../../onboarding/presentation/providers/onboarding_providers.dart';
 
 final msg91OtpServiceProvider = Provider<Msg91OtpService>(
   (ref) => const Msg91OtpService(),
 );
 
-final _secureStorageProvider = Provider<SecureStorage>(
-  (ref) => SecureStorage(const FlutterSecureStorage()),
-);
-
 final otpRepositoryProvider = Provider<OtpRepository>((ref) {
   return OtpRepositoryImpl(
     service: ref.watch(msg91OtpServiceProvider),
-    secureStorage: ref.watch(_secureStorageProvider),
     config: AppConfig.I,
   );
 });
@@ -34,6 +31,7 @@ class AuthState {
     this.reqId,
     this.mobile,
     this.verifiedMobile,
+    this.onboardingNeeded = false,
   });
 
   final bool isSending;
@@ -50,6 +48,9 @@ class AuthState {
   /// Set once verifyOtp succeeds.
   final String? verifiedMobile;
 
+  /// True when the backend signals the doctor profile is incomplete.
+  final bool onboardingNeeded;
+
   AuthState copyWith({
     bool? isSending,
     bool? isVerifying,
@@ -58,6 +59,7 @@ class AuthState {
     Object? reqId = _sentinel,
     Object? mobile = _sentinel,
     Object? verifiedMobile = _sentinel,
+    bool? onboardingNeeded,
   }) {
     return AuthState(
       isSending: isSending ?? this.isSending,
@@ -69,6 +71,7 @@ class AuthState {
       verifiedMobile: identical(verifiedMobile, _sentinel)
           ? this.verifiedMobile
           : verifiedMobile as String?,
+      onboardingNeeded: onboardingNeeded ?? this.onboardingNeeded,
     );
   }
 
@@ -77,10 +80,14 @@ class AuthState {
 
 class AuthController extends Notifier<AuthState> {
   late final OtpRepository _repo;
+  late final DoctorRepository _doctorRepo;
+  late final SecureStorage _storage;
 
   @override
   AuthState build() {
     _repo = ref.watch(otpRepositoryProvider);
+    _doctorRepo = ref.watch(doctorRepositoryProvider);
+    _storage = ref.watch(secureStorageProvider);
     return const AuthState();
   }
 
@@ -108,13 +115,32 @@ class AuthController extends Notifier<AuthState> {
     }
     state = state.copyWith(isVerifying: true, error: null);
     final res = await _repo.verifyOtp(reqId: reqId, mobile: mobile, otp: otp);
-    return res.fold(
+    final accessToken = res.fold<String?>(
+      (f) {
+        state = state.copyWith(isVerifying: false, error: _message(f));
+        return null;
+      },
+      (token) => token,
+    );
+    if (accessToken == null) return false;
+    return _exchange(accessToken, mobile);
+  }
+
+  Future<bool> _exchange(String accessToken, String mobile) async {
+    final login = await _doctorRepo.login(accessToken);
+    return login.fold(
       (f) {
         state = state.copyWith(isVerifying: false, error: _message(f));
         return false;
       },
-      (_) {
-        state = state.copyWith(isVerifying: false, verifiedMobile: mobile);
+      (resp) async {
+        await _storage.writeAuthToken(resp.token);
+        ref.read(authTokenProvider.notifier).token = resp.token;
+        state = state.copyWith(
+          isVerifying: false,
+          verifiedMobile: mobile,
+          onboardingNeeded: resp.onboardingNeeded,
+        );
         return true;
       },
     );
