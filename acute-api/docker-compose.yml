@@ -1,0 +1,35 @@
+services:
+  db:
+    image: pgvector/pgvector:pg17
+    container_name: acute-db
+    environment:
+      POSTGRES_DB: acute-db
+      POSTGRES_USER: acute-user
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-acute-pass}
+    ports:
+      - "5432:5432"
+    volumes:
+      - acute-pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U acute-user -d acute-db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:8-alpine
+    container_name: acute-redis
+    command: ["redis-server", "--appendonly", "yes"]
+    ports:
+      - "6379:6379"
+    volumes:
+      - acute-redisdata:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  acute-pgdata:
+  acute-redisdata:

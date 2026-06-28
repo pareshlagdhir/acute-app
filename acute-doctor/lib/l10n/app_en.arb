@@ -1,0 +1,11 @@
+{
+  "@@locale": "en",
+  "appTitle": "Acutework",
+  "tagline": "Safety alerts for medical practitioners",
+  "verifiedBy": "Verified for IMA & state councils",
+  "ctaSendCode": "Send code",
+  "ctaVerifyAndContinue": "Verify and continue",
+  "ctaContinue": "Continue",
+  "ctaEmergency": "Emergency",
+  "ctaMarkSafe": "Mark safe"
+}

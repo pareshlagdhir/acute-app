@@ -1,0 +1,9 @@
+{
+  "dart.flutterSdkPath": null,
+  "editor.formatOnSave": true,
+  "editor.codeActionsOnSave": { "source.fixAll": "explicit" },
+  "[dart]": {
+    "editor.rulers": [100],
+    "editor.tabSize": 2
+  }
+}

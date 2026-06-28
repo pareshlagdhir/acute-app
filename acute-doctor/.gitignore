@@ -1,0 +1,72 @@
+.DS_Store
+.atom/
+.build/
+
+# Secrets — real env files, keep examples committed
+env/*.json
+!env/*.example.json
+
+.buildlog/
+.history
+.svn/
+.swiftpm/
+migrate_working_dir/
+
+# IntelliJ
+*.iml
+*.ipr
+*.iws
+.idea/
+
+# VS Code
+.vscode/*
+!.vscode/launch.json
+!.vscode/settings.json
+
+# Flutter / Dart
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+.pub-cache/
+.pub/
+build/
+coverage/
+pubspec.lock
+
+# Generated
+*.g.dart
+*.freezed.dart
+*.gr.dart
+
+# Env
+.env
+.env.*
+!.env.example
+
+# Android
+android/.gradle/
+android/captures/
+android/key.properties
+android/app/google-services.json
+android/app/upload-keystore.jks
+*.jks
+
+# iOS
+ios/Flutter/App.framework
+ios/Flutter/Flutter.framework
+ios/Flutter/Flutter.podspec
+ios/Flutter/Generated.xcconfig
+ios/Flutter/app.flx
+ios/Flutter/app.zip
+ios/Flutter/flutter_assets/
+ios/Flutter/flutter_export_environment.sh
+ios/ServiceDefinitions.json
+ios/Runner/GeneratedPluginRegistrant.*
+ios/Runner/GoogleService-Info.plist
+ios/Pods/
+ios/.symlinks/
+
+# macOS
+**/Flutter/ephemeral/
+**/Pods/
