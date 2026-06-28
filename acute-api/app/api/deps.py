@@ -24,5 +24,4 @@ async def get_current_doctor(
     doctor = await db.get(Doctor, doctor_id)
     if doctor is None:
         raise HTTPException(status_code=401, detail="Unknown doctor")
-    await db.refresh(doctor)
     return doctor

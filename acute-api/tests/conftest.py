@@ -22,7 +22,7 @@ async def db_session() -> AsyncGenerator[AsyncSession, None]:
     engine = create_async_engine("sqlite+aiosqlite:///:memory:")
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
-    maker = async_sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
+    maker = async_sessionmaker(engine, class_=AsyncSession, expire_on_commit=True)
     async with maker() as session:
 
         async def _override_get_db():
@@ -48,6 +48,7 @@ async def make_doctor(db_session: AsyncSession):
         db_session.add(doctor)
         await db_session.commit()
         await db_session.refresh(doctor)
+        db_session.expunge(doctor)
         return doctor
 
     return _make

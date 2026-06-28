@@ -22,6 +22,7 @@ async def test_add_list_update_delete_education(client: AsyncClient, make_doctor
         json={"institution": "AIIMS"},
         headers=h,
     )
+    assert updated.status_code == 200
     assert updated.json()["institution"] == "AIIMS"
 
     deleted = await client.delete(f"/api/v1/doctors/me/educations/{edu_id}", headers=h)
@@ -37,6 +38,14 @@ async def test_cannot_touch_other_doctors_education(client: AsyncClient, make_do
         headers=auth_headers(owner),
     )
     edu_id = created.json()["id"]
+
+    patch_resp = await client.patch(
+        f"/api/v1/doctors/me/educations/{edu_id}",
+        json={"institution": "Intruder University"},
+        headers=auth_headers(other),
+    )
+    assert patch_resp.status_code == 404
+
     resp = await client.delete(
         f"/api/v1/doctors/me/educations/{edu_id}", headers=auth_headers(other)
     )
