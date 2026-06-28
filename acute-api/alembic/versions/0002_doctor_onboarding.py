@@ -1,7 +1,7 @@
 """doctor onboarding tables + catalog seed
 
 Revision ID: 0002_doctor_onboarding
-Revises: 0001_enable_pgvector
+Revises: 0001
 Create Date: 2026-06-28
 """
 import uuid
