@@ -6,6 +6,7 @@ from httpx import ASGITransport, AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
 import app.models  # noqa: F401  (register tables)
+from app.api.deps import get_current_doctor  # noqa: F401
 from app.core.security import create_access_token
 from app.db.base import Base
 from app.db.session import get_db
