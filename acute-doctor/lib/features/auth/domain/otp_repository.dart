@@ -15,9 +15,9 @@ abstract interface class OtpRepository {
   /// Returns the MSG91 `reqId` on success.
   Future<Either<Failure, String>> sendOtp({required String mobile});
 
-  /// Verifies the user-entered OTP for the given send-request. On success
-  /// persists the verified phone so downstream gates can read it.
-  Future<Either<Failure, Unit>> verifyOtp({
+  /// Verifies the user-entered OTP for the given send-request.
+  /// On success returns the MSG91 access token for backend session exchange.
+  Future<Either<Failure, String>> verifyOtp({
     required String reqId,
     required String mobile,
     required String otp,
