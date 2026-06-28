@@ -9,6 +9,7 @@ from app.api.v1.endpoints.hospitals import router as hospitals_router
 from app.api.v1.endpoints.otp import router as otp_router
 from app.api.v1.endpoints.experiences import router as experiences_router
 from app.api.v1.endpoints.specialities import router as specialities_router
+from app.api.v1.endpoints.working_hours import router as working_hours_router
 
 api_v1_router = APIRouter()
 
@@ -26,4 +27,9 @@ api_v1_router.include_router(
 )
 api_v1_router.include_router(
     experiences_router, prefix="/doctors/me/experiences", tags=["experiences"]
+)
+api_v1_router.include_router(
+    working_hours_router,
+    prefix="/doctors/me/experiences/{exp_id}/working-hours",
+    tags=["working-hours"],
 )
