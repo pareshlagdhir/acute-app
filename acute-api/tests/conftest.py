@@ -7,11 +7,14 @@ from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_asyn
 
 import app.models  # noqa: F401  (register tables)
 from app.api.deps import get_current_doctor  # noqa: F401
+from app.core.config import settings
 from app.core.security import create_access_token
 from app.db.base import Base
 from app.db.session import get_db
 from app.main import app
 from app.models.doctor import Doctor
+
+settings.JWT_SECRET = "test-secret-key-that-is-definitely-long-enough-0123456789"
 
 
 @pytest.fixture

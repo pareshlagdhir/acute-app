@@ -21,7 +21,7 @@ async def login(body: LoginRequest, db: AsyncSession = Depends(get_db)) -> Login
         try:
             result = await svc.verify_otp_token(body.access_token)
         except MSG91UnavailableError as exc:
-            raise HTTPException(status_code=502, detail=f"MSG91 unreachable: {exc}") from exc
+            raise HTTPException(status_code=502, detail="MSG91 service unavailable") from exc
 
     if not result.verified or not result.mobile:
         raise HTTPException(status_code=401, detail="OTP verification failed")
