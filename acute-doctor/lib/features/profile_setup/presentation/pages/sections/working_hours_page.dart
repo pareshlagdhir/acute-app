@@ -165,7 +165,12 @@ class _DayGroupState extends ConsumerState<_DayGroup> {
         .deleteWorkingHour(widget.experienceId, wh.id);
     if (!mounted) return;
     final failure = res.fold<Failure?>((f) => f, (_) => null);
-    if (failure != null) return; // Silently ignore; user can retry
+    if (failure != null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(failure.message)),
+      );
+      return;
+    }
     await ref.read(profileControllerProvider.notifier).refresh();
   }
 
@@ -265,9 +270,10 @@ class _AddSlotFormState extends ConsumerState<_AddSlotForm> {
       });
       return;
     }
+    final notifier = ref.read(profileControllerProvider.notifier);
+    await notifier.refresh();
+    if (!mounted) return;
     Navigator.of(context).pop();
-    await ref.read(profileControllerProvider.notifier).refresh();
-    if (mounted) setState(() => _saving = false);
   }
 
   @override
