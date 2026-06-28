@@ -163,6 +163,7 @@ class _ExperienceCardState extends ConsumerState<_ExperienceCard> {
   }
 
   Future<void> _confirmDelete(BuildContext context) async {
+    final scaffoldMessenger = ScaffoldMessenger.of(context);
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -189,7 +190,12 @@ class _ExperienceCardState extends ConsumerState<_ExperienceCard> {
         .deleteExperience(widget.experience.id);
     if (!mounted) return;
     final failure = res.fold<Failure?>((f) => f, (_) => null);
-    if (failure != null) return; // Silently ignore; user can retry
+    if (failure != null) {
+      scaffoldMessenger.showSnackBar(
+        SnackBar(content: Text(failure.message)),
+      );
+      return;
+    }
     await ref.read(profileControllerProvider.notifier).refresh();
   }
 }

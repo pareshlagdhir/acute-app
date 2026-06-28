@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../../core/errors/failures.dart';
 import '../../../../../core/theme/tokens/tokens.dart';
 import '../../../../../core/widgets/acute_button.dart';
 import '../../../../onboarding/data/models/profile_models.dart';
@@ -54,16 +55,16 @@ class _PersonalInfoPageState extends ConsumerState<PersonalInfoPage> {
           email: _email.text.trim().isEmpty ? null : _email.text.trim(),
         );
     if (!mounted) return;
-    res.fold(
-      (f) => setState(() {
+    final failure = res.fold<Failure?>((f) => f, (_) => null);
+    if (failure != null) {
+      setState(() {
         _saving = false;
-        _error = f.message;
-      }),
-      (_) async {
-        await ref.read(profileControllerProvider.notifier).refresh();
-        if (mounted) context.pop();
-      },
-    );
+        _error = failure.message;
+      });
+      return;
+    }
+    await ref.read(profileControllerProvider.notifier).refresh();
+    if (mounted) context.pop();
   }
 
   @override

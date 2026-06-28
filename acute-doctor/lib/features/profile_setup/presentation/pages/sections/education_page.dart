@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../../core/errors/failures.dart';
 import '../../../../../core/theme/tokens/tokens.dart';
 import '../../../../../core/widgets/acute_button.dart';
 import '../../../../onboarding/data/models/profile_models.dart';
@@ -241,25 +242,16 @@ class _EducationFormState extends ConsumerState<_EducationForm> {
           .read(doctorRepositoryProvider)
           .updateEducation(widget.education!.id, changes);
       if (!mounted) return;
-      res.fold(
-        (f) => setState(() {
+      final updateFailure = res.fold<Failure?>((f) => f, (_) => null);
+      if (updateFailure != null) {
+        setState(() {
           _saving = false;
-          _error = f.message;
-        }),
-        (_) async {
-          try {
-            await ref.read(profileControllerProvider.notifier).refresh();
-            if (mounted) Navigator.of(context).pop();
-          } on Exception catch (e) {
-            if (mounted) {
-              setState(() {
-                _saving = false;
-                _error = 'Failed to refresh: $e';
-              });
-            }
-          }
-        },
-      );
+          _error = updateFailure.message;
+        });
+        return;
+      }
+      await ref.read(profileControllerProvider.notifier).refresh();
+      if (mounted) Navigator.of(context).pop();
     } else {
       final res = await ref.read(doctorRepositoryProvider).addEducation(
             degree: _degree,
@@ -268,25 +260,16 @@ class _EducationFormState extends ConsumerState<_EducationForm> {
             yearOfCompletion: year,
           );
       if (!mounted) return;
-      res.fold(
-        (f) => setState(() {
+      final addFailure = res.fold<Failure?>((f) => f, (_) => null);
+      if (addFailure != null) {
+        setState(() {
           _saving = false;
-          _error = f.message;
-        }),
-        (_) async {
-          try {
-            await ref.read(profileControllerProvider.notifier).refresh();
-            if (mounted) Navigator.of(context).pop();
-          } on Exception catch (e) {
-            if (mounted) {
-              setState(() {
-                _saving = false;
-                _error = 'Failed to refresh: $e';
-              });
-            }
-          }
-        },
-      );
+          _error = addFailure.message;
+        });
+        return;
+      }
+      await ref.read(profileControllerProvider.notifier).refresh();
+      if (mounted) Navigator.of(context).pop();
     }
   }
 

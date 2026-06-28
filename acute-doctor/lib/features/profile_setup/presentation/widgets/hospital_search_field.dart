@@ -44,6 +44,7 @@ class _HospitalSearchFieldState extends State<HospitalSearchField> {
   bool _loading = false;
   bool _showSuggestions = false;
   bool _creatingNew = false;
+  String? _createError;
 
   @override
   void initState() {
@@ -92,13 +93,28 @@ class _HospitalSearchFieldState extends State<HospitalSearchField> {
     setState(() {
       _creatingNew = true;
       _showSuggestions = false;
+      _createError = null;
     });
-    final hospital = await widget.onCreate(name, 'hospital');
-    if (!mounted) return;
-    _controller.text = hospital.name;
-    setState(() => _creatingNew = false);
-    widget.onSelected(hospital);
-    _focusNode.unfocus();
+    try {
+      final hospital = await widget.onCreate(name, 'hospital');
+      if (!mounted) return;
+      _controller.text = hospital.name;
+      setState(() => _creatingNew = false);
+      widget.onSelected(hospital);
+      _focusNode.unfocus();
+    } on Exception catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _creatingNew = false;
+        _createError = e.toString().replaceFirst('Exception: ', '');
+      });
+    } on Object catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _creatingNew = false;
+        _createError = e.toString();
+      });
+    }
   }
 
   @override
@@ -131,6 +147,17 @@ class _HospitalSearchFieldState extends State<HospitalSearchField> {
           onChanged: _onChanged,
           textInputAction: TextInputAction.search,
         ),
+        if (_createError != null)
+          Padding(
+            padding: const EdgeInsets.only(top: 4),
+            child: Text(
+              _createError!,
+              style: TextStyle(
+                color: Theme.of(context).colorScheme.error,
+                fontSize: 12,
+              ),
+            ),
+          ),
         if (_showSuggestions && (_results.isNotEmpty || hasNoMatch))
           Material(
             elevation: 2,
