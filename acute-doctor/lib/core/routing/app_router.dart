@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -8,12 +9,23 @@ import '../../features/home/presentation/pages/home_page.dart';
 import '../../features/profile/presentation/pages/profile_page.dart';
 import '../../features/profile_setup/presentation/pages/profile_setup_page.dart';
 import '../../features/splash/presentation/pages/splash_page.dart';
+import '../network/dio_provider.dart';
 import 'app_routes.dart';
 
 final goRouterProvider = Provider<GoRouter>((ref) {
   return GoRouter(
     initialLocation: AppRoutes.splash,
     debugLogDiagnostics: false,
+    redirect: (context, state) {
+      final token = ref.read(authTokenProvider);
+      final loc = state.matchedLocation;
+      final guarded = loc == AppRoutes.home ||
+          loc == AppRoutes.alerts ||
+          loc == AppRoutes.profile ||
+          loc.startsWith('/onboarding');
+      if (guarded && (token == null || token.isEmpty)) return AppRoutes.login;
+      return null;
+    },
     routes: [
       GoRoute(path: AppRoutes.splash, builder: (_, __) => const SplashPage()),
       GoRoute(path: AppRoutes.login, builder: (_, __) => const LoginPage()),
@@ -25,7 +37,43 @@ final goRouterProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
         path: AppRoutes.profileSetup,
+        // TODO(F6): replace placeholder with real OnboardingHubPage
         builder: (_, __) => const ProfileSetupPage(),
+      ),
+      GoRoute(
+        path: AppRoutes.onboardingPersonal,
+        // TODO(F7-F11): replace placeholder with real PersonalInfoPage
+        builder: (_, __) => const Scaffold(
+          body: Center(child: Text('Personal Info (coming soon)')),
+        ),
+      ),
+      GoRoute(
+        path: AppRoutes.onboardingEducation,
+        // TODO(F7-F11): replace placeholder with real EducationPage
+        builder: (_, __) => const Scaffold(
+          body: Center(child: Text('Education (coming soon)')),
+        ),
+      ),
+      GoRoute(
+        path: AppRoutes.onboardingSpeciality,
+        // TODO(F7-F11): replace placeholder with real SpecialityPage
+        builder: (_, __) => const Scaffold(
+          body: Center(child: Text('Speciality (coming soon)')),
+        ),
+      ),
+      GoRoute(
+        path: AppRoutes.onboardingExperience,
+        // TODO(F7-F11): replace placeholder with real ExperiencePage
+        builder: (_, __) => const Scaffold(
+          body: Center(child: Text('Experience (coming soon)')),
+        ),
+      ),
+      GoRoute(
+        path: AppRoutes.onboardingWorkingHours,
+        // TODO(F7-F11): replace placeholder with real WorkingHoursPage
+        builder: (_, __) => const Scaffold(
+          body: Center(child: Text('Working Hours (coming soon)')),
+        ),
       ),
       GoRoute(path: AppRoutes.home, builder: (_, __) => const HomePage()),
       GoRoute(path: AppRoutes.alerts, builder: (_, __) => const AlertsPage()),
