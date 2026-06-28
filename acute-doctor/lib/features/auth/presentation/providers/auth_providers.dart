@@ -7,6 +7,7 @@ import '../../../../core/storage/secure_storage.dart';
 import '../../data/msg91_otp_service.dart';
 import '../../data/otp_repository_impl.dart';
 import '../../domain/otp_repository.dart';
+import '../../../onboarding/data/models/login_models.dart';
 import '../../../onboarding/domain/doctor_repository.dart';
 import '../../../onboarding/presentation/providers/onboarding_providers.dart';
 
@@ -128,22 +129,22 @@ class AuthController extends Notifier<AuthState> {
 
   Future<bool> _exchange(String accessToken, String mobile) async {
     final login = await _doctorRepo.login(accessToken);
-    return login.fold(
+    final resp = login.fold<LoginResponse?>(
       (f) {
         state = state.copyWith(isVerifying: false, error: _message(f));
-        return false;
+        return null;
       },
-      (resp) async {
-        await _storage.writeAuthToken(resp.token);
-        ref.read(authTokenProvider.notifier).token = resp.token;
-        state = state.copyWith(
-          isVerifying: false,
-          verifiedMobile: mobile,
-          onboardingNeeded: resp.onboardingNeeded,
-        );
-        return true;
-      },
+      (r) => r,
     );
+    if (resp == null) return false;
+    await _storage.writeAuthToken(resp.token);
+    ref.read(authTokenProvider.notifier).token = resp.token;
+    state = state.copyWith(
+      isVerifying: false,
+      verifiedMobile: mobile,
+      onboardingNeeded: resp.onboardingNeeded,
+    );
+    return true;
   }
 
   Future<bool> resendOtp({bool voice = false}) async {
