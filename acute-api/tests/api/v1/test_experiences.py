@@ -45,3 +45,24 @@ async def test_experience_rejects_unknown_hospital(client: AsyncClient, make_doc
         headers=auth_headers(doctor),
     )
     assert resp.status_code == 422
+
+
+async def test_patch_experience_rejects_unknown_hospital(client: AsyncClient, make_doctor, auth_headers) -> None:
+    doctor = await make_doctor()
+    h = auth_headers(doctor)
+    hospital_id = await _make_hospital(client, h)
+
+    created = await client.post(
+        "/api/v1/doctors/me/experiences",
+        json={"hospital_id": hospital_id, "designation": "Consultant", "is_current": True},
+        headers=h,
+    )
+    assert created.status_code == 201
+    exp_id = created.json()["id"]
+
+    patched = await client.patch(
+        f"/api/v1/doctors/me/experiences/{exp_id}",
+        json={"hospital_id": str(uuid.uuid4())},
+        headers=h,
+    )
+    assert patched.status_code == 422
