@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../../core/errors/failures.dart';
 import '../../../../../core/theme/tokens/tokens.dart';
 import '../../../../../core/widgets/acute_button.dart';
 import '../../../../onboarding/data/models/profile_models.dart';
@@ -48,25 +49,16 @@ class _SpecialityBodyState extends ConsumerState<_SpecialityBody> {
     });
     final res = await ref.read(doctorRepositoryProvider).deleteSpeciality(id);
     if (!mounted) return;
-    res.fold(
-      (f) => setState(() {
+    final failure = res.fold<Failure?>((f) => f, (_) => null);
+    if (failure != null) {
+      setState(() {
         _saving = false;
-        _error = f.message;
-      }),
-      (_) async {
-        try {
-          await ref.read(profileControllerProvider.notifier).refresh();
-          if (mounted) setState(() => _saving = false);
-        } on Exception catch (e) {
-          if (mounted) {
-            setState(() {
-              _saving = false;
-              _error = 'Failed to refresh: $e';
-            });
-          }
-        }
-      },
-    );
+        _error = failure.message;
+      });
+      return;
+    }
+    await ref.read(profileControllerProvider.notifier).refresh();
+    if (mounted) setState(() => _saving = false);
   }
 
   Future<void> _add(String name) async {
@@ -76,28 +68,17 @@ class _SpecialityBodyState extends ConsumerState<_SpecialityBody> {
     });
     final res = await ref.read(doctorRepositoryProvider).addSpeciality(name);
     if (!mounted) return;
-    res.fold(
-      (f) => setState(() {
+    final failure = res.fold<Failure?>((f) => f, (_) => null);
+    if (failure != null) {
+      setState(() {
         _saving = false;
-        _error = f.message;
-      }),
-      (_) async {
-        try {
-          await ref.read(profileControllerProvider.notifier).refresh();
-          if (mounted) {
-            Navigator.of(context).pop();
-            setState(() => _saving = false);
-          }
-        } on Exception catch (e) {
-          if (mounted) {
-            setState(() {
-              _saving = false;
-              _error = 'Failed to refresh: $e';
-            });
-          }
-        }
-      },
-    );
+        _error = failure.message;
+      });
+      return;
+    }
+    Navigator.of(context).pop();
+    await ref.read(profileControllerProvider.notifier).refresh();
+    if (mounted) setState(() => _saving = false);
   }
 
   Future<void> _openPicker() async {
