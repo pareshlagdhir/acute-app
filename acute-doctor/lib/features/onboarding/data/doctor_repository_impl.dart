@@ -95,10 +95,10 @@ class DoctorRepositoryImpl implements DoctorRepository {
   @override
   Future<Either<Failure, Experience>> addExperience({
     required String hospitalId, String? designation,
-    String? startDate, String? endDate, bool isCurrent = false,
+    String? startDate, String? endDate, bool? isCurrent,
   }) =>
       _guard(() => _api.addExperience({
-            'hospital_id': hospitalId, 'is_current': isCurrent,
+            'hospital_id': hospitalId, 'is_current': isCurrent ?? false,
             if (designation != null) 'designation': designation,
             if (startDate != null) 'start_date': startDate,
             if (endDate != null) 'end_date': endDate,

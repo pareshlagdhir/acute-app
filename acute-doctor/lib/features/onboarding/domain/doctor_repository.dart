@@ -26,7 +26,7 @@ abstract interface class DoctorRepository {
   Future<Either<Failure, Unit>> deleteSpeciality(String id);
   Future<Either<Failure, Experience>> addExperience({
     required String hospitalId, String? designation,
-    String? startDate, String? endDate, bool isCurrent,
+    String? startDate, String? endDate, bool? isCurrent,
   });
   Future<Either<Failure, Experience>> updateExperience(String id, Map<String, dynamic> changes);
   Future<Either<Failure, Unit>> deleteExperience(String id);
