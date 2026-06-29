@@ -1,27 +1,44 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/constants/app_constants.dart';
+import '../../../../core/network/dio_provider.dart';
 import '../../../../core/routing/app_routes.dart';
 import '../../../../core/theme/tokens/tokens.dart';
 import '../widgets/radial_pulse.dart';
 
-class SplashPage extends StatefulWidget {
+class SplashPage extends ConsumerStatefulWidget {
   const SplashPage({super.key});
 
   @override
-  State<SplashPage> createState() => _SplashPageState();
+  ConsumerState<SplashPage> createState() => _SplashPageState();
 }
 
-class _SplashPageState extends State<SplashPage> {
+class _SplashPageState extends ConsumerState<SplashPage> {
   @override
   void initState() {
     super.initState();
-    Timer(const Duration(milliseconds: 2200), () {
-      if (mounted) context.go(AppRoutes.login);
-    });
+    unawaited(_bootstrap());
+  }
+
+  Future<void> _bootstrap() async {
+    // Seed authTokenProvider from secure storage before deciding where to go.
+    final storedToken =
+        await ref.read(secureStorageProvider).readAuthToken();
+    ref.read(authTokenProvider.notifier).token = storedToken;
+
+    // Wait for the splash animation to complete (approx 2200 ms).
+    await Future<void>.delayed(const Duration(milliseconds: 2200));
+
+    if (!mounted) return;
+    if (storedToken != null && storedToken.isNotEmpty) {
+      context.go(AppRoutes.home);
+    } else {
+      context.go(AppRoutes.login);
+    }
   }
 
   @override

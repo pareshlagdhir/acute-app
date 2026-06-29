@@ -9,6 +9,10 @@ class Settings(BaseSettings):
     MSG91_AUTHKEY: str = ""
     MSG91_VERIFY_URL: str = "https://control.msg91.com/api/v5/widget/verifyAccessToken"
 
+    JWT_SECRET: str = "change-me-in-env"
+    JWT_ALG: str = "HS256"
+    JWT_EXP_DAYS: int = 30
+
     DATABASE_URL: str = (
         "postgresql+asyncpg://acute-user@localhost:5432/acute-db"
     )

@@ -23,9 +23,16 @@ class Msg91OtpService {
     return reqId.toString();
   }
 
-  Future<void> verifyOtp({required String reqId, required String otp}) async {
+  /// Verifies the OTP and returns the MSG91 access token (the success
+  /// `message`) that the backend exchanges for a session.
+  Future<String> verifyOtp({required String reqId, required String otp}) async {
     final response = await OTPWidget.verifyOTP({'reqId': reqId, 'otp': otp});
-    _ensureSuccess(response);
+    final map = _ensureSuccess(response);
+    final token = (map['message'] ?? map['accessToken']) as Object?;
+    if (token == null || token.toString().isEmpty) {
+      throw const ServerException('MSG91: missing access token after verify');
+    }
+    return token.toString();
   }
 
   /// Resends OTP via the given channel. SDK codes:

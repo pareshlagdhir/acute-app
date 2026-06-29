@@ -49,7 +49,8 @@ class _OtpPageState extends ConsumerState<OtpPage> {
     final ok = await ref.read(authControllerProvider.notifier).verifyOtp(otp);
     if (!mounted) return;
     if (ok) {
-      context.go(AppRoutes.profileSetup);
+      final needsOnboarding = ref.read(authControllerProvider).onboardingNeeded;
+      context.go(needsOnboarding ? AppRoutes.profileSetup : AppRoutes.home);
     } else {
       _controller.clear();
     }

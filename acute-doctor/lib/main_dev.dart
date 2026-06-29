@@ -6,7 +6,7 @@ const _msg91TokenAuth = String.fromEnvironment('MSG91_TOKEN_AUTH');
 
 Future<void> main() => bootstrap(
       flavor: Flavor.dev,
-      apiBaseUrl: 'https://api-dev.acutework.in',
+      apiBaseUrl: 'http://localhost:8000',
       enableLogging: true,
       msg91WidgetId: _msg91WidgetId,
       msg91TokenAuth: _msg91TokenAuth,
