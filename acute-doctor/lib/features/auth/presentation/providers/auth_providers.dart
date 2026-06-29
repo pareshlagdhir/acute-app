@@ -167,6 +167,15 @@ class AuthController extends Notifier<AuthState> {
     );
   }
 
+  /// Clears the persisted session and in-memory token, returning the app to
+  /// an unauthenticated state. The router redirect then guards protected
+  /// routes back to login.
+  Future<void> logout() async {
+    await _storage.clear();
+    ref.read(authTokenProvider.notifier).token = null;
+    state = const AuthState();
+  }
+
   void clearError() => state = state.copyWith(error: null);
 
   String _message(Failure f) => f.message;

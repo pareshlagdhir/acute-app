@@ -33,3 +33,44 @@ Applied a set of post-review corrections to the migration and test suite:
 - **test_working_hours.py**: Added `test_delete_experience_cascades_working_hours` verifying that deleting an experience causes its working-hours to be gone (GET returns 404).
 - Postgres autogenerate drift-check was run and confirmed clean (generated file contained only `pass`).
 - Full suite: 42 passed, 0 warnings.
+
+## Flutter (acute-doctor) — F1–F12
+Baseline: removed stale test/widget_test.dart (template referencing MyApp/acutework). analyze clean, tests green.
+Flutter BASE for F1 = HEAD after cleanup.
+
+### Flutter cross-task contract facts (discovered F1 — inject into all later F-tasks)
+- PACKAGE NAME is `acutework` (NOT `acute_doctor`). All brief imports `package:acute_doctor/...` must be `package:acutework/...`.
+- flutter_riverpod ^3.3.1 (Riverpod 3.x). `StateProvider` is legacy.
+- authTokenProvider = NotifierProvider<AuthTokenNotifier,String?>. READ: ref.read(authTokenProvider) -> String?. WRITE: ref.read(authTokenProvider.notifier).token = value.
+- secureStorageProvider, dioProvider live in lib/core/network/dio_provider.dart.
+Task F1: complete (commits 643e48d..99ad1fb, review clean; adapted to acutework pkg + Riverpod3 NotifierProvider)
+  Minor (carry to final): dioProvider doesn't ref.onDispose(dio.close); authTokenProvider round-trip untested.
+Task F2: complete (commits 99ad1fb..955078c, approved; Freezed-3.x abstract classes; generated files untracked per .gitignore convention)
+  Minor (carry to final): Experience (nested Hospital+WorkingHour) deserialization not exercised in model test.
+Task F3: complete (commits 955078c..fb66d3e, approved after fix; made addExperience isCurrent nullable bool? in both abstract+impl, coerce ?? false in body. NOTE: reviewer's literal "=false on abstract" fix was illegal Dart; used nullable instead.)
+  Minor (carry to final): repo test lacks registerFallbackValue(<String,dynamic>{}) for future map-arg stubs.
+Task F4: complete (commits fb66d3e..cdc6267, approved after fix; rewired auth->backend login exchange, AuthState plain class +onboardingNeeded, token write via .token setter, removed otp-verified marker + dup secureStorageProvider. _exchange refactored to sync-fold-then-await.)
+  Minor (carry to final): AuthController.verifyOtp/_exchange (writeAuthToken + notifier set + onboardingNeeded) has no direct controller test; only DTO/repo-level test.
+Task F5: complete (commits cdc6267..03f33ca, approved; 5 onboarding routes (placeholders), redirect guard, splash token bootstrap via .token setter, otp routes by onboardingNeeded. 8/8.)
+  Minor (carry to final): authTokenProvider lives in dio_provider.dart (naming smell); duplicated route-constant test; guard doesn't bounce authed user off /login.
+Task F6: complete (commits 03f33ca..aa486e1, approved; profileControllerProvider AsyncNotifier + OnboardingHubPage wired to profileSetup route, Icons.medical_services_outlined for speciality. 9/9.)
+  Minor (carry to final): _SectionTile.onTap typed VoidCallback while caller is async lambda (no runtime risk); error UI shows raw exception toString.
+Task F7: complete (commits aa486e1..bb4a241, approved; PersonalInfoPage with _seeded guard, mounted checks, route rewired. 11/11.)
+  Minor (carry to final): profile-load error arm shows raw e.toString().
+Task F8: complete (commits bb4a241..826e2af, approved after fix; EducationPage + reusable CatalogPicker, route rewired. Fixes: picker submit-on-blur (also helps F9), mounted guard in delete (ConsumerStatefulWidget), _saving reset on refresh failure. 12/12.)
+  Minor (carry to final): no add-form/custom-entry widget test; CatalogPicker search has no debounce/out-of-order-cancel.
+Task F9: complete (commits 826e2af..a69d744, approved after fix; SpecialityPage reusing CatalogPicker, route rewired. Fix: extract-then-await outside dartz fold in add/delete. 13/13.)
+  NOTE: dartz fold+async-lambda hazard recurs across section pages. F8 education_page likely still has it -> FLAG for final-review sweep. F10/F11 told to use extract-then-await from the start.
+Task F10: complete (commits a69d744..eea222a, approved after fix; ExperiencePage + HospitalSearchField (search/add-new), dates yyyy-MM-dd, extract-then-await mutations, route rewired. Fix: dropped transitive intl, local date formatter. 14/14.)
+Task F11: complete (commits eea222a..ca2bd7d, approved after fix; WorkingHoursPage per-experience day-grouped slots, HH:mm:ss, end>start validation, empty-state, route rewired. Fix: surface delete errors via snackbar, fix add-slot refresh/pop ordering. 15/15.)
+Task F12: complete (verification only, no commit needed — generated files untracked). build_runner clean (0 outputs changed), flutter analyze clean, 15/15 tests pass.
+
+ALL 12 FLUTTER TASKS COMPLETE.
+
+### IMPORTANT recovery (post-final-review)
+- Discovered F4 commit 9d58569 OMITTED 3 auth files (msg91_otp_service, otp_repository_impl, otp_repository); their verifyOtp->access-token changes were left uncommitted. Committed branch didn't compile (auth_providers used new API, committed repo had old Unit signature). Tests always passed because on-disk files were correct. Reviews missed it because reviewers opened the working-tree files.
+- The final-review fix subagent ran in an ISOLATED WORKTREE (agent-afd12b0d957d4ed52); its commits were stranded off-branch.
+- RECOVERY: committed stranded auth files (d79839d); cherry-picked final-review code fixes (2625f49); removed worktree + branch; verified COMMITTED state: working tree clean vs HEAD, analyze clean, 16/16 tests green.
+
+FLUTTER COMPLETE & MERGE-READY. feat/doctor-onboarding HEAD = 2625f49.
+Deferred (documented, non-blocking): login redirect doesn't bounce authed user; dioProvider no dispose; authTokenProvider lives in dio_provider.dart (layering); CatalogPicker/HospitalSearchField no debounce/out-of-order-cancel; section error arms show raw Exception toString; thin mutation-flow widget coverage.
