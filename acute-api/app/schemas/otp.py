@@ -33,9 +33,3 @@ class OTPResendRequest(BaseModel):
 
 class OTPSendResponse(BaseModel):
     sent: bool = True
-
-
-class OTPVerifyResponse(BaseModel):
-    verified: bool
-    mobile: str | None = None
-    message: str | None = None
