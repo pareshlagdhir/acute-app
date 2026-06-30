@@ -79,7 +79,7 @@ cd acute-api
 python -m venv .venv
 source .venv/bin/activate     # or .venv\Scripts\activate on Windows
 pip install -e ".[dev]"       # editable install with dev deps
-cp .env.example .env          # configure MSG91_AUTHKEY
+cp .env.example .env          # configure MSG91_AUTHKEY and MSG91_OTP_TEMPLATE_ID
 ```
 
 **Local infrastructure (Postgres + Redis):**
@@ -135,12 +135,17 @@ Each feature (auth, home, alerts) has three layers:
 - `app/api/v1/router.py` — composes v1 endpoints (health, otp)
 - `app/api/v1/endpoints/{feature}.py` — request handlers, HTTP exceptions
 - `app/schemas/` — Pydantic models (request/response validation & docs)
-- `app/services/` — business logic (e.g., MSG91Service for OTP verification)
+- `app/services/` — business logic (e.g., MSG91Service for server-side OTP lifecycle: send, verify, resend via MSG91 v5 REST API)
 - `app/core/config.py` — environment settings (use pydantic-settings, loaded from .env)
 
 **Request/response flow:**  
 HTTP request → Pydantic validation → endpoint handler → service logic → schema response  
 Exceptions bubble to FastAPI's exception handlers (502 for MSG91 outages, 422 for validation).
+
+**OTP flow:**  
+`POST /api/v1/otp/send` initiates server-side OTP via MSG91 v5 REST API.  
+`POST /api/v1/otp/verify` confirms the OTP, finds-or-creates the doctor, and returns a JWT session (no separate `/auth/login`).  
+`POST /api/v1/otp/resend` re-sends via SMS or voice channel.
 
 **Testing setup:**  
 - Fixtures in `tests/conftest.py` provide AsyncClient with ASGI transport
