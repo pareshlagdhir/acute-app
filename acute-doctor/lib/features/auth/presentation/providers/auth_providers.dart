@@ -4,20 +4,18 @@ import '../../../../core/config/app_config.dart';
 import '../../../../core/errors/failures.dart';
 import '../../../../core/network/dio_provider.dart';
 import '../../../../core/storage/secure_storage.dart';
-import '../../data/msg91_otp_service.dart';
+import '../../data/otp_api.dart';
 import '../../data/otp_repository_impl.dart';
 import '../../domain/otp_repository.dart';
 import '../../../onboarding/data/models/login_models.dart';
-import '../../../onboarding/domain/doctor_repository.dart';
-import '../../../onboarding/presentation/providers/onboarding_providers.dart';
 
-final msg91OtpServiceProvider = Provider<Msg91OtpService>(
-  (ref) => const Msg91OtpService(),
+final otpApiProvider = Provider<OtpApi>(
+  (ref) => OtpApi(ref.watch(dioProvider)),
 );
 
 final otpRepositoryProvider = Provider<OtpRepository>((ref) {
   return OtpRepositoryImpl(
-    service: ref.watch(msg91OtpServiceProvider),
+    api: ref.watch(otpApiProvider),
     config: AppConfig.I,
   );
 });
@@ -29,7 +27,6 @@ class AuthState {
     this.isVerifying = false,
     this.isResending = false,
     this.error,
-    this.reqId,
     this.mobile,
     this.verifiedMobile,
     this.onboardingNeeded = false,
@@ -39,9 +36,6 @@ class AuthState {
   final bool isVerifying;
   final bool isResending;
   final String? error;
-
-  /// MSG91 send-request id. Required for verify/resend.
-  final String? reqId;
 
   /// Mobile number currently mid-flow.
   final String? mobile;
@@ -57,7 +51,6 @@ class AuthState {
     bool? isVerifying,
     bool? isResending,
     Object? error = _sentinel,
-    Object? reqId = _sentinel,
     Object? mobile = _sentinel,
     Object? verifiedMobile = _sentinel,
     bool? onboardingNeeded,
@@ -67,7 +60,6 @@ class AuthState {
       isVerifying: isVerifying ?? this.isVerifying,
       isResending: isResending ?? this.isResending,
       error: identical(error, _sentinel) ? this.error : error as String?,
-      reqId: identical(reqId, _sentinel) ? this.reqId : reqId as String?,
       mobile: identical(mobile, _sentinel) ? this.mobile : mobile as String?,
       verifiedMobile: identical(verifiedMobile, _sentinel)
           ? this.verifiedMobile
@@ -81,13 +73,11 @@ class AuthState {
 
 class AuthController extends Notifier<AuthState> {
   late final OtpRepository _repo;
-  late final DoctorRepository _doctorRepo;
   late final SecureStorage _storage;
 
   @override
   AuthState build() {
     _repo = ref.watch(otpRepositoryProvider);
-    _doctorRepo = ref.watch(doctorRepositoryProvider);
     _storage = ref.watch(secureStorageProvider);
     return const AuthState();
   }
@@ -100,36 +90,22 @@ class AuthController extends Notifier<AuthState> {
         state = state.copyWith(isSending: false, error: _message(f));
         return false;
       },
-      (reqId) {
-        state = state.copyWith(isSending: false, reqId: reqId, mobile: mobile);
+      (_) {
+        state = state.copyWith(isSending: false, mobile: mobile);
         return true;
       },
     );
   }
 
   Future<bool> verifyOtp(String otp) async {
-    final reqId = state.reqId;
     final mobile = state.mobile;
-    if (reqId == null || mobile == null) {
+    if (mobile == null) {
       state = state.copyWith(error: 'Please request a new code');
       return false;
     }
     state = state.copyWith(isVerifying: true, error: null);
-    final res = await _repo.verifyOtp(reqId: reqId, mobile: mobile, otp: otp);
-    final accessToken = res.fold<String?>(
-      (f) {
-        state = state.copyWith(isVerifying: false, error: _message(f));
-        return null;
-      },
-      (token) => token,
-    );
-    if (accessToken == null) return false;
-    return _exchange(accessToken, mobile);
-  }
-
-  Future<bool> _exchange(String accessToken, String mobile) async {
-    final login = await _doctorRepo.login(accessToken);
-    final resp = login.fold<LoginResponse?>(
+    final res = await _repo.verifyOtp(mobile: mobile, otp: otp);
+    final resp = res.fold<LoginResponse?>(
       (f) {
         state = state.copyWith(isVerifying: false, error: _message(f));
         return null;
@@ -148,13 +124,13 @@ class AuthController extends Notifier<AuthState> {
   }
 
   Future<bool> resendOtp({bool voice = false}) async {
-    final reqId = state.reqId;
-    if (reqId == null) {
+    final mobile = state.mobile;
+    if (mobile == null) {
       state = state.copyWith(error: 'Please request a new code');
       return false;
     }
     state = state.copyWith(isResending: true, error: null);
-    final res = await _repo.resendOtp(reqId: reqId, voice: voice);
+    final res = await _repo.resendOtp(mobile: mobile, voice: voice);
     return res.fold(
       (f) {
         state = state.copyWith(isResending: false, error: _message(f));
