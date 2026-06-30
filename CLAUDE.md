@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-**Shield** is a monorepo containing a safety-alert platform for medical practitioners verified for IMA & state councils:
+**acute-app** is a monorepo containing a safety-alert platform for medical practitioners verified for IMA & state councils:
 
 - **acute-doctor/** — Flutter mobile app (Android + iOS), Clean Architecture with Riverpod state management
 - **acute-api/** — FastAPI backend server for OTP verification and health checks

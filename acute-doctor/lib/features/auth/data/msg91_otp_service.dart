@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:sendotp_flutter_sdk/sendotp_flutter_sdk.dart';
 
 import '../../../core/errors/exceptions.dart';
@@ -14,6 +16,24 @@ class Msg91OtpService {
   /// Sends an OTP to [identifier] (mobile with country code, or email).
   /// Returns the `reqId` that must be quoted on verify/retry.
   Future<String> sendOtp({required String identifier}) async {
+    // TEMP DIAGNOSTIC (remove after debugging): print each widget process so we
+    // can confirm whether the SMS process now has a non-empty templateId.
+    try {
+      final cfg = await OTPWidget.getWidgetProcess();
+      final processes = (cfg?['data']?['processes'] as List?) ?? const [];
+      for (final p in processes) {
+        final m = p as Map;
+        // ignore: avoid_print
+        print('[MSG91 process] channel=${m['channel']} '
+            'via=${m['processVia']} templateId="${m['templateId']}" '
+            'use_default=${m['use_default']}');
+      }
+      // ignore: avoid_print
+      print('[MSG91 widgetMeta] ${jsonEncode(cfg?['data']?['widgetMeta'])}');
+    } catch (e) {
+      // ignore: avoid_print
+      print('[MSG91 widgetProcess] error: $e');
+    }
     final response = await OTPWidget.sendOTP({'identifier': identifier});
     final map = _ensureSuccess(response);
     final reqId = (map['message'] ?? map['reqId'] ?? map['data']) as Object?;
