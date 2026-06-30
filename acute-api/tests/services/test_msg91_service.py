@@ -41,6 +41,20 @@ async def test_send_otp_transport_error_raises_unavailable(svc: MSG91Service) ->
             await svc.send_otp("919876543210")
 
 
+async def test_verify_otp_transport_error_raises_unavailable(svc: MSG91Service) -> None:
+    with respx.mock:
+        respx.get(settings.MSG91_OTP_VERIFY_URL).mock(side_effect=httpx.ConnectError("down"))
+        with pytest.raises(MSG91UnavailableError):
+            await svc.verify_otp("919876543210", "1234")
+
+
+async def test_resend_otp_transport_error_raises_unavailable(svc: MSG91Service) -> None:
+    with respx.mock:
+        respx.get(settings.MSG91_OTP_RETRY_URL).mock(side_effect=httpx.ConnectError("down"))
+        with pytest.raises(MSG91UnavailableError):
+            await svc.resend_otp("919876543210", "text")
+
+
 async def test_verify_otp_success(svc: MSG91Service) -> None:
     with respx.mock:
         respx.get(settings.MSG91_OTP_VERIFY_URL).mock(
