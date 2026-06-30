@@ -67,6 +67,7 @@ async def test_verify_existing_doctor_is_not_new(client: AsyncClient, make_docto
         resp = await client.post("/api/v1/otp/verify", json={"mobile": MOBILE, "otp": "1234"})
     assert resp.status_code == 200
     assert resp.json()["is_new"] is False
+    assert resp.json()["token"]
 
 
 async def test_verify_wrong_otp_returns_401(client: AsyncClient) -> None:
@@ -108,6 +109,7 @@ async def test_resend_voice_success(client: AsyncClient) -> None:
         )
         resp = await client.post("/api/v1/otp/resend", json={"mobile": MOBILE, "voice": True})
     assert resp.status_code == 200
+    assert resp.json()["sent"] is True
 
 
 async def test_resend_error_returns_502(client: AsyncClient) -> None:
