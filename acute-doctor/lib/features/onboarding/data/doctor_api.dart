@@ -1,7 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:retrofit/retrofit.dart';
 
-import 'models/login_models.dart';
 import 'models/profile_models.dart';
 
 part 'doctor_api.g.dart';
@@ -9,9 +8,6 @@ part 'doctor_api.g.dart';
 @RestApi()
 abstract class DoctorApi {
   factory DoctorApi(Dio dio) = _DoctorApi;
-
-  @POST('/api/v1/auth/login')
-  Future<LoginResponse> login(@Body() LoginRequest body);
 
   @GET('/api/v1/doctors/me')
   Future<DoctorProfile> getMe();

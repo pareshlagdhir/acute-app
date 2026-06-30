@@ -13,10 +13,8 @@ class ErrorInterceptor extends Interceptor {
       DioExceptionType.connectionError =>
         const NetworkException(),
       DioExceptionType.badResponse => ServerException(
-          (err.response?.data is Map &&
-                  (err.response?.data as Map)['message'] is String)
-              ? (err.response?.data as Map)['message'] as String
-              : 'Server error (${err.response?.statusCode})',
+          _serverMessage(err.response?.data) ??
+              'Server error (${err.response?.statusCode})',
           code: err.response?.statusCode?.toString(),
         ),
       DioExceptionType.cancel => const ServerException('Request cancelled'),
@@ -32,5 +30,11 @@ class ErrorInterceptor extends Interceptor {
         type: err.type,
       ),
     );
+  }
+
+  String? _serverMessage(dynamic data) {
+    if (data is! Map) return null;
+    final msg = data['message'] ?? data['detail'];
+    return msg is String ? msg : null;
   }
 }

@@ -1,11 +1,9 @@
 import 'package:dartz/dartz.dart';
 
 import '../../../core/errors/failures.dart';
-import '../data/models/login_models.dart';
 import '../data/models/profile_models.dart';
 
 abstract interface class DoctorRepository {
-  Future<Either<Failure, LoginResponse>> login(String accessToken);
   Future<Either<Failure, DoctorProfile>> getMe();
   Future<Either<Failure, DoctorProfile>> updatePersonal({
     String? firstName, String? middleName, String? lastName, String? email,

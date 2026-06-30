@@ -4,15 +4,6 @@ part 'login_models.freezed.dart';
 part 'login_models.g.dart';
 
 @freezed
-abstract class LoginRequest with _$LoginRequest {
-  const factory LoginRequest({
-    @JsonKey(name: 'access_token') required String accessToken,
-  }) = _LoginRequest;
-  factory LoginRequest.fromJson(Map<String, dynamic> json) =>
-      _$LoginRequestFromJson(json);
-}
-
-@freezed
 abstract class LoginResponse with _$LoginResponse {
   const factory LoginResponse({
     required String token,

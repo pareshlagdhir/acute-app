@@ -4,7 +4,6 @@ import '../../../core/errors/exceptions.dart';
 import '../../../core/errors/failures.dart';
 import '../domain/doctor_repository.dart';
 import 'doctor_api.dart';
-import 'models/login_models.dart';
 import 'models/profile_models.dart';
 
 class DoctorRepositoryImpl implements DoctorRepository {
@@ -24,10 +23,6 @@ class DoctorRepositoryImpl implements DoctorRepository {
       return Left(UnknownFailure(e.toString()));
     }
   }
-
-  @override
-  Future<Either<Failure, LoginResponse>> login(String accessToken) =>
-      _guard(() => _api.login(LoginRequest(accessToken: accessToken)));
 
   @override
   Future<Either<Failure, DoctorProfile>> getMe() => _guard(_api.getMe);
