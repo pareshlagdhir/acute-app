@@ -12,6 +12,7 @@ import 'package:acutework/features/onboarding/data/models/login_models.dart';
 class _FakeOtpApi implements OtpApi {
   OtpVerifyRequest? lastVerify;
   OtpSendRequest? lastSend;
+  OtpResendRequest? lastResend;
   Exception? error;
 
   @override
@@ -34,6 +35,7 @@ class _FakeOtpApi implements OtpApi {
 
   @override
   Future<void> resendOtp(OtpResendRequest body) async {
+    lastResend = body;
     if (error != null) throw error!;
   }
 }
@@ -71,6 +73,32 @@ void main() {
     expect(res.isLeft(), true);
     res.fold(
       (f) => expect(f, isA<ServerFailure>()),
+      (_) => fail('expected Left'),
+    );
+  });
+
+  test('resendOtp prepends country code', () async {
+    final res = await repo.resendOtp(mobile: '9876543210');
+    expect(res.isRight(), true);
+    expect(api.lastResend!.mobile, '919876543210');
+  });
+
+  test('maps NetworkException to NetworkFailure', () async {
+    api.error = const NetworkException('offline');
+    final res = await repo.sendOtp(mobile: '9876543210');
+    expect(res.isLeft(), true);
+    res.fold(
+      (f) => expect(f, isA<NetworkFailure>()),
+      (_) => fail('expected Left'),
+    );
+  });
+
+  test('maps unexpected exception to UnknownFailure', () async {
+    api.error = const FormatException('boom');
+    final res = await repo.sendOtp(mobile: '9876543210');
+    expect(res.isLeft(), true);
+    res.fold(
+      (f) => expect(f, isA<UnknownFailure>()),
       (_) => fail('expected Left'),
     );
   });
