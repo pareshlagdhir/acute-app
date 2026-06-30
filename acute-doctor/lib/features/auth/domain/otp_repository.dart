@@ -1,32 +1,25 @@
 import 'package:dartz/dartz.dart';
 
 import '../../../core/errors/failures.dart';
+import '../../onboarding/data/models/login_models.dart';
 
-/// Contract for an OTP provider. Today fulfilled by MSG91's official Flutter
-/// SDK; swap the implementation (e.g. for a backend proxy) without touching
-/// callers when needed.
-///
-/// The MSG91 SDK returns a `reqId` from [sendOtp] which must be passed to
-/// [verifyOtp] / [resendOtp]. Callers are expected to carry it across the
-/// send→verify navigation (in Riverpod state).
+/// Contract for the backend OTP flow. The backend (MSG91Service) owns
+/// send/verify/resend; the app talks only to our API. `mobile` is the
+/// 10-digit national number — the implementation prepends the country code.
 abstract interface class OtpRepository {
-  /// Sends an OTP to the given 10-digit national mobile number. The country
-  /// code is prepended by the implementation (read from `AppConfig`).
-  /// Returns the MSG91 `reqId` on success.
-  Future<Either<Failure, String>> sendOtp({required String mobile});
+  /// Sends an OTP to the given national mobile number.
+  Future<Either<Failure, Unit>> sendOtp({required String mobile});
 
-  /// Verifies the user-entered OTP for the given send-request.
-  /// On success returns the MSG91 access token for backend session exchange.
-  Future<Either<Failure, String>> verifyOtp({
-    required String reqId,
+  /// Verifies the OTP. On success the backend issues the session, returned
+  /// here as a [LoginResponse] (token + onboarding flags).
+  Future<Either<Failure, LoginResponse>> verifyOtp({
     required String mobile,
     required String otp,
   });
 
-  /// Re-sends the OTP. [voice] = true requests the voice-call channel
-  /// instead of SMS.
+  /// Re-sends the OTP. [voice] = true requests the voice channel instead of SMS.
   Future<Either<Failure, Unit>> resendOtp({
-    required String reqId,
+    required String mobile,
     bool voice = false,
   });
 }

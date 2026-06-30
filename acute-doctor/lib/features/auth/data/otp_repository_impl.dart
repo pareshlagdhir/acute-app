@@ -3,46 +3,46 @@ import 'package:dartz/dartz.dart';
 import '../../../core/config/app_config.dart';
 import '../../../core/errors/exceptions.dart';
 import '../../../core/errors/failures.dart';
+import '../../onboarding/data/models/login_models.dart';
 import '../domain/otp_repository.dart';
-import 'msg91_otp_service.dart';
+import 'models/otp_models.dart';
+import 'otp_api.dart';
 
 class OtpRepositoryImpl implements OtpRepository {
-  OtpRepositoryImpl({
-    required Msg91OtpService service,
-    required AppConfig config,
-  })  : _service = service,
+  OtpRepositoryImpl({required OtpApi api, required AppConfig config})
+      : _api = api,
         _config = config;
 
-  final Msg91OtpService _service;
+  final OtpApi _api;
   final AppConfig _config;
 
   @override
-  Future<Either<Failure, String>> sendOtp({required String mobile}) async {
-    return _guard(() => _service.sendOtp(identifier: _fullMobile(mobile)));
-  }
+  Future<Either<Failure, Unit>> sendOtp({required String mobile}) =>
+      _guard(() async {
+        await _api.sendOtp(OtpSendRequest(mobile: _fullMobile(mobile)));
+        return unit;
+      });
 
   @override
-  Future<Either<Failure, String>> verifyOtp({
-    required String reqId,
+  Future<Either<Failure, LoginResponse>> verifyOtp({
     required String mobile,
     required String otp,
-  }) async {
-    return _guard(() async {
-      final accessToken = await _service.verifyOtp(reqId: reqId, otp: otp);
-      return accessToken;
-    });
-  }
+  }) =>
+      _guard(() => _api.verifyOtp(
+            OtpVerifyRequest(mobile: _fullMobile(mobile), otp: otp),
+          ),);
 
   @override
   Future<Either<Failure, Unit>> resendOtp({
-    required String reqId,
+    required String mobile,
     bool voice = false,
-  }) async {
-    return _guard(() async {
-      await _service.resendOtp(reqId: reqId, channel: voice ? 4 : 11);
-      return unit;
-    });
-  }
+  }) =>
+      _guard(() async {
+        await _api.resendOtp(
+          OtpResendRequest(mobile: _fullMobile(mobile), voice: voice),
+        );
+        return unit;
+      });
 
   String _fullMobile(String national) => '${_config.defaultCountryCode}$national';
 
