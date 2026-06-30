@@ -7,7 +7,10 @@ class Settings(BaseSettings):
     VERSION: str = "0.1.0"
 
     MSG91_AUTHKEY: str = ""
-    MSG91_VERIFY_URL: str = "https://control.msg91.com/api/v5/widget/verifyAccessToken"
+    MSG91_OTP_TEMPLATE_ID: str = ""
+    MSG91_OTP_SEND_URL: str = "https://control.msg91.com/api/v5/otp"
+    MSG91_OTP_VERIFY_URL: str = "https://control.msg91.com/api/v5/otp/verify"
+    MSG91_OTP_RETRY_URL: str = "https://control.msg91.com/api/v5/otp/retry"
 
     JWT_SECRET: str = "change-me-in-env"
     JWT_ALG: str = "HS256"
